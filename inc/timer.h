@@ -478,5 +478,6 @@ void Delay(unsigned int);
 void DelayIrq(unsigned int mSec);
 void ClearScreenIrq(unsigned int mSec);
 void timerIrqHandler(void);
+void timerFinish(void);
 
 #endif // TIMER_H_

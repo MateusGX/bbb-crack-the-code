@@ -242,6 +242,13 @@ void ClearScreenIrq(unsigned int mSec)
     DMTimerEnable(SOC_DMTIMER_4_REGS);
 }
 
+void timerFinish(void)
+{
+    HWREG(SOC_DMTIMER_4_REGS + DMTIMER_IRQSTATUS) = 0x2;
+    HWREG(SOC_DMTIMER_4_REGS + DMTIMER_IRQENABLE_CLR) = 0x2;
+    DMTimerDisable(SOC_DMTIMER_4_REGS);
+}
+
 void timerIrqHandler(void)
 {
     /* Clear the status of the interrupt flags */

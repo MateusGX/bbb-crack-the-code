@@ -195,9 +195,7 @@ void clearScreen()
 	ledOff(GPIO1, 12);
 	ledOff(GPIO1, 14);
 	pause = false;
-	HWREG(SOC_DMTIMER_4_REGS + DMTIMER_IRQSTATUS) = 0x2;
-	HWREG(SOC_DMTIMER_4_REGS + DMTIMER_IRQENABLE_CLR) = 0x2;
-	DMTimerDisable(SOC_DMTIMER_4_REGS);
+	timerFinish();
 }
 
 int main(void)

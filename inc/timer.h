@@ -467,6 +467,8 @@
 
 #define TINT7 95
 
+#define TINT4 92
+
 void DMTimerCounterSet(unsigned int, unsigned int);
 unsigned int DMTimerCounterGet(unsigned int);
 void DMTimerEnable(unsigned int);
@@ -474,6 +476,7 @@ void DMTimerDisable(unsigned int);
 void DMTimerSetUp(void);
 void Delay(unsigned int);
 void DelayIrq(unsigned int mSec);
+void ClearScreenIrq(unsigned int mSec);
 void timerIrqHandler(void);
 
 #endif // TIMER_H_

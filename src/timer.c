@@ -168,7 +168,16 @@ void DMTimerSetUp(void)
     {
     };
 
+    /*  Clock enable for DMTIMER4 TRM 8.1.12.1.25 */
+    ckmSetCLKModuleRegister(SOC_CM_PER_REGS, CM_PER_TIMER4_CLKCTRL, CM_PER_TIMER4_CLKCTRL_MODULEMODE_ENABLE);
+
+    while ((HWREG(SOC_CM_PER_REGS + CM_PER_TIMER4_CLKCTRL) &
+            CM_PER_TIMER4_CLKCTRL_MODULEMODE) != CM_PER_TIMER4_CLKCTRL_MODULEMODE_ENABLE)
+    {
+    };
+
     configureMirClear(TINT7);
+    configureMirClear(TINT4);
 }
 
 /*FUNCTION*-------------------------------------------------------
@@ -213,6 +222,24 @@ void DelayIrq(unsigned int mSec)
 
     /* Disable the DMTimer interrupts */
     HWREG(SOC_DMTIMER_7_REGS + DMTIMER_IRQENABLE_CLR) = 0x2;
+}
+
+void ClearScreenIrq(unsigned int mSec)
+{
+
+    unsigned int countVal = TIMER_OVERFLOW - (mSec * TIMER_1MS_COUNT);
+
+    /* Wait for previous write to complete */
+    DMTimerWaitForWrite(0x2, SOC_DMTIMER_4_REGS);
+
+    /* Load the register with the re-load value */
+    HWREG(SOC_DMTIMER_4_REGS + DMTIMER_TCRR) = countVal;
+
+    /* Enable the DMTimer interrupts */
+    HWREG(SOC_DMTIMER_4_REGS + DMTIMER_IRQENABLE_SET) = 0x2;
+
+    /* Start the DMTimer */
+    DMTimerEnable(SOC_DMTIMER_4_REGS);
 }
 
 void timerIrqHandler(void)

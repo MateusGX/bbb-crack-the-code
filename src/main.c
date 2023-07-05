@@ -22,6 +22,8 @@ char response2 = '.';
 char response3 = '.';
 char response4 = '.';
 
+bool pause = false;
+
 char *getGame(Button btn)
 {
 	if (btn == BTN1)
@@ -34,9 +36,33 @@ char *getGame(Button btn)
 		return &game4;
 }
 
+void gameSetup()
+{
+	RandomAddEntropy(DMTimerCounterGet(SOC_DMTIMER_2_REGS));
+	RandomSeed();
+	unsigned int num = RandomNumber();
+
+	response1 = (num % 10) + '0';
+	response2 = ((num / 10) % 10) + '0';
+	response3 = ((num / 100) % 10) + '0';
+	response4 = ((num / 1000) % 10) + '0';
+	uartPutC(UART0, '[');
+	uartPutC(UART0, response4);
+	uartPutC(UART0, response3);
+	uartPutC(UART0, response2);
+	uartPutC(UART0, response1);
+	uartPutC(UART0, ']');
+	uartPutC(UART0, ' ');
+}
+
 int btnOkPress()
 {
-	if (game1 != 'X' && game2 != 'X' && game3 != 'X' && game4 != 'X')
+	if (pause == true)
+		return 0;
+
+	pause = true;
+	if ((game1 != 'X' && game2 != 'X' && game3 != 'X' && game4 != 'X') &&
+			(game1 != '-' && game2 != '-' && game3 != '-' && game4 != '-'))
 	{
 		if (game1 == response1 && game2 == response2 && game3 == response3 && game4 == response4)
 		{
@@ -44,6 +70,8 @@ int btnOkPress()
 			game2 = '-';
 			game3 = '-';
 			game4 = '-';
+			ledOn(GPIO1, 14);
+			gameSetup();
 			return 0;
 		}
 
@@ -51,6 +79,8 @@ int btnOkPress()
 		game2 = game2 == response2 ? '-' : 'X';
 		game3 = game3 == response3 ? '-' : 'X';
 		game4 = game4 == response4 ? '-' : 'X';
+
+		ledOn(GPIO1, 12);
 	}
 	return 0;
 }
@@ -63,16 +93,24 @@ void reset()
 	game4 = 'X';
 }
 
-void btnNumPress(Button btn)
+int btnNumPress(Button btn)
 {
-	char *game = getGame(btn);
+	uartPutString(UART0, "B1\r\n", 4);
 
+	char *game = getGame(btn);
+	if (pause == true)
+		return 0;
+
+	uartPutString(UART0, "B2\r\n", 4);
 	if (*game == 'X')
 	{
 		*game = '0';
+		uartPutString(UART0, "B3\r\n", 4);
 	}
 	else
 	{
+		uartPutString(UART0, "B4\r\n", 4);
+
 		int number = (int)*game - '0';
 		if (number < 9)
 		{
@@ -89,6 +127,11 @@ void btnNumPress(Button btn)
 void setupGpio()
 {
 	gpioInitModule(GPIO1);
+	gpioPinMuxSetup(GPIO1, 12);
+	gpioPinMuxSetup(GPIO1, 14);
+	gpioSetDirection(GPIO1, 12, OUTPUT);
+	gpioSetDirection(GPIO1, 14, OUTPUT);
+
 	gpioPinMuxSetup(GPIO2, 3); // TIMER 7 -btn
 	gpioPinMuxSetup(GPIO2, 4); // TIMER 6 -btn
 	gpioPinMuxSetup(GPIO2, 2); //  -btn
@@ -122,7 +165,7 @@ void gpio2Handle(void)
 	{
 		uartPutString(UART0, "IRQ -> GPIO -> 2_4\r\n", 20);
 		btnOkPress();
-		reset();
+		ClearScreenIrq(3000);
 		clearIrqGpio(GPIO2, 4);
 	}
 	else if (checkIrqGpioPin(GPIO2, 1))
@@ -145,20 +188,16 @@ void gpio2Handle(void)
 	}
 }
 
-void gameSetup()
+void clearScreen()
 {
-	RandomAddEntropy(DMTimerCounterGet(SOC_DMTIMER_2_REGS));
-	RandomSeed();
-	unsigned int num = RandomNumber();
-
-	response1 = (num % 10) + '0';
-	response2 = ((num / 10) % 10) + '0';
-	response3 = ((num / 100) % 10) + '0';
-	response4 = ((num / 1000) % 10) + '0';
-	uartPutC(UART0, response1);
-	uartPutC(UART0, response2);
-	uartPutC(UART0, response3);
-	uartPutC(UART0, response4);
+	uartPutString(UART0, "SISTEMA RESET___\r\n", 18);
+	reset();
+	ledOff(GPIO1, 12);
+	ledOff(GPIO1, 14);
+	pause = false;
+	HWREG(SOC_DMTIMER_4_REGS + DMTIMER_IRQSTATUS) = 0x2;
+	HWREG(SOC_DMTIMER_4_REGS + DMTIMER_IRQENABLE_CLR) = 0x2;
+	DMTimerDisable(SOC_DMTIMER_4_REGS);
 }
 
 int main(void)
@@ -180,6 +219,7 @@ int main(void)
 
 	// IRQs
 	AddIrq(TINT7, timerIrqHandler);
+	AddIrq(TINT4, clearScreen);
 	AddIrq(GPIOINT2A, gpio2Handle);
 
 	gameSetup();

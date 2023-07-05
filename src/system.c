@@ -20,9 +20,6 @@ void AddIrq(unsigned char irqNum, InterruptFunction function)
 {
   if (irqNum > 0)
   {
-    uartPutString(UART0, "IRQ_SET -> ", 11);
-    uartPutC(UART0, 0x30 + irqNum);
-    uartPutString(UART0, "\r\n", 2);
     fnRAMVectors[irqNum] = function;
   }
 }
@@ -31,9 +28,6 @@ void ResetIrq(unsigned char irqNum)
 {
   if (irqNum > 0)
   {
-    uartPutString(UART0, "IRQ_RESET -> ", 13);
-    uartPutC(UART0, 0x30 + irqNum);
-    uartPutString(UART0, "\r\n", 2);
     fnRAMVectors[irqNum] = IntDefaultHandler;
   }
 }
@@ -46,13 +40,23 @@ void IrqInit()
   }
 }
 
+void printb(unsigned int num)
+{
+  for (int i = 32 - 1; i >= 0; i--)
+  {
+    if ((num >> i) & 1)
+      uartPutC(UART0, '1');
+    else
+      uartPutC(UART0, '0');
+  }
+}
+
 void IrqGlobalHandler(void)
 {
   unsigned int irq_number = HWREG(BBB_INTC_SIR_IRQ) & 0x7f;
-  ledOn(GPIO1, 12);
-
+  uartPutString(UART0, "IRQ:", 4);
+  printb(irq_number);
+  uartPutString(UART0, "\r\n", 2);
   fnRAMVectors[irq_number]();
-
-  ledOff(GPIO1, 12);
   HWREG(BBB_INTC_CONTROL) = 0x1;
 }

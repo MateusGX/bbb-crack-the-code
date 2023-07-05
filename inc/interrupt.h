@@ -8,6 +8,7 @@
 #include "uart.h"
 
 #define GPIOINT2A 32
+#define GPIOINT1A 98
 #define DEBOUNCING_TIME 0xFF
 
 void InitIrq(void);

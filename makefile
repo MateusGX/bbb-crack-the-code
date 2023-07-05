@@ -8,8 +8,8 @@ BIN=bin/
 
 all: app
 
-app: start.o main.o gpio.o uart.o timer.o pad.o control_module.o clock_module.o wdt.o interrupt.o led_animations.o system.o
-	$(CHAIN)-ld $(OBJ)start.o $(OBJ)main.o $(OBJ)gpio.o $(OBJ)led_animations.o $(OBJ)timer.o $(OBJ)wdt.o $(OBJ)interrupt.o $(OBJ)system.o $(OBJ)uart.o $(OBJ)pad.o $(OBJ)control_module.o $(OBJ)clock_module.o -T $(SRC)memmap.ld -o $(OBJ)main.elf
+app: start.o main.o gpio.o uart.o timer.o pad.o control_module.o clock_module.o wdt.o interrupt.o led_animations.o system.o display.o random.o
+	$(CHAIN)-ld $(OBJ)start.o $(OBJ)main.o $(OBJ)gpio.o $(OBJ)led_animations.o $(OBJ)timer.o $(OBJ)wdt.o $(OBJ)random.o $(OBJ)interrupt.o $(OBJ)display.o $(OBJ)system.o $(OBJ)uart.o $(OBJ)pad.o $(OBJ)control_module.o $(OBJ)clock_module.o -T $(SRC)memmap.ld -o $(OBJ)main.elf
 	$(CHAIN)-objcopy $(OBJ)main.elf $(BIN)spl.boot -O binary
 	cp $(BIN)spl.boot /tftpboot/app.bin
 
@@ -48,6 +48,12 @@ interrupt.o: $(SRC)interrupt.c
 
 led_animations.o: $(SRC)led_animations.c
 	$(CHAIN)-gcc $(CFLAGS) $(IPATH) -c $(SRC)led_animations.c -o $(OBJ)led_animations.o
+
+display.o: $(SRC)display.c
+	$(CHAIN)-gcc $(CFLAGS) $(IPATH) -c $(SRC)display.c -o $(OBJ)display.o
+
+random.o: $(SRC)random.c
+	$(CHAIN)-gcc $(CFLAGS) $(IPATH) -c $(SRC)random.c -o $(OBJ)random.o
 
 
 copy:

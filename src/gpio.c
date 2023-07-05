@@ -361,13 +361,10 @@ void configureIrqGpio(gpioMod mod, ucPinNumber pin)
 		case GPIO1:
 			HWREG(SOC_GPIO_1_REGS + GPIO_IRQSTATUS_SET_0) |= 1 << pin;
 			HWREG(SOC_GPIO_1_REGS + GPIO_RISINGDETECT) |= 1 << pin;
-			HWREG(SOC_GPIO_1_REGS + GPIO_DEBOUNCENABLE) |= 1 << pin;
-			HWREG(SOC_GPIO_1_REGS + GPIO_DEBOUNCINGTIME) = DEBOUNCING_TIME;
 			break;
 		case GPIO2:
 			HWREG(SOC_GPIO_2_REGS + GPIO_IRQSTATUS_SET_0) |= 1 << pin;
 			HWREG(SOC_GPIO_2_REGS + GPIO_RISINGDETECT) |= 1 << pin;
-			HWREG(SOC_GPIO_1_REGS + GPIO_DEBOUNCINGTIME) = DEBOUNCING_TIME;
 			break;
 		case GPIO3:
 			break;
@@ -421,25 +418,4 @@ pinLevel checkIrqGpioPin(gpioMod mod, ucPinNumber pin)
 	}
 
 	return LOW;
-}
-
-void btnHandler(int *btn_flag)
-{
-	*btn_flag = !*btn_flag;
-}
-
-void gpio2IqrHandler(int *btn1_flag, int *btn2_flag)
-{
-	if (checkIrqGpioPin(GPIO2, 3))
-	{
-		uartPutString(UART0, "IRQ -> GPIO -> 2_3\r\n", 20);
-		btnHandler(btn1_flag);
-		clearIrqGpio(GPIO2, 3);
-	}
-	else if (checkIrqGpioPin(GPIO2, 4))
-	{
-		uartPutString(UART0, "IRQ -> GPIO -> 2_4\r\n", 20);
-		btnHandler(btn2_flag);
-		clearIrqGpio(GPIO2, 4);
-	}
 }

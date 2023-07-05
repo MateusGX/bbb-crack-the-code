@@ -92,8 +92,6 @@ void gpioSetPinValue(gpioMod, ucPinNumber, pinLevel);
 pinLevel gpioGetPinValue(gpioMod, ucPinNumber);
 bool gpioCheckValidPortPin(gpioMod mod, ucPinNumber pin);
 
-void gpio2IqrHandler(int *btn1_flag, int *btn2_flag);
-
 pinLevel checkIrqGpioPin(gpioMod mod, ucPinNumber pin);
 void clearIrqGpio(gpioMod mod, ucPinNumber pin);
 void configureIrqGpio(gpioMod mod, ucPinNumber pin);
